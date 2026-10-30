@@ -24,3 +24,7 @@ lint.ignore = [
   "S607",   # subprocess with a partial path; PATH lookup of git/gh/dvc is intended
   "T201",   # print: these scripts are CLI tools that talk to the user
 ]
+
+[tool.uv]
+required-version = ">=0.13.6"
+exclude-newer = "P5D"
