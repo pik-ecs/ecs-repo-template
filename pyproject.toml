@@ -6,7 +6,11 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "jinja2>=3.1",
     "mkdocs-material>=9.7.7",
+    # Exact pin: must match the rev generated projects pin in
+    # template/.pre-commit-config.yaml.jinja, or the canonical form differs per side.
+    "pyproject-fmt==2.27.0",
 ]
 
 # This repo lints with everything (a superset of the group standard that generated
@@ -24,6 +28,10 @@ lint.ignore = [
   "S607",   # subprocess with a partial path; PATH lookup of git/gh/dvc is intended
   "T201",   # print: these scripts are CLI tools that talk to the user
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Jinja placeholder dir names and the empty package init shipped to projects.
+"template/src/**" = ["N999", "D104"]
 
 [tool.uv]
 required-version = ">=0.13.6"

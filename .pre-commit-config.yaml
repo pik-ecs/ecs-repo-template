@@ -1,10 +1,15 @@
 repos:
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "b82a24a520c5d496cb7b23b4e9b63537c280f51b" #v2.27.0
+  # template/pyproject.toml.jinja carries structural Jinja, so it is no longer parseable
+  # TOML in this repo; the guarantee moved to the rendered output (must be pyproject-fmt
+  # canonical, or copier updates merge-conflict on untouched projects).
+  - repo: local
     hooks:
-      - id: pyproject-fmt
-        files: ^template/pyproject\.toml\.jinja\.src$
-        exclude: ^template/scripts
+      - id: check-render
+        name: render check (template pyproject is pyproject-fmt canonical)
+        entry: uv run scripts/check_render.py
+        language: system
+        always_run: true
+        pass_filenames: false
 
   # Lints all Python here with the [tool.ruff] config in the root pyproject.toml —
   # the same discovery generated projects use, so shipped scripts can never break a

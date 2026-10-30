@@ -8,18 +8,18 @@ description = "{{project_description}}"
 requires-python = ">={{python_version}}"
 classifiers = [
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
+{#- Upper bound is one past the newest Python pyproject-fmt knows about; it is pinned in the
+    dev group to the same version generated projects pin, and check_render.py fails on drift. -#}
+{%- for minor in range(python_version.split(".")[1] | int, 15) %}
+  "Programming Language :: Python :: 3.{{ minor }}",
+{%- endfor %}
 ]
 dynamic = [ "version" ]
 dependencies = []
 
 [tool.hatch]
 version.source = "vcs"
-build.targets.wheel.packages = [ "src/{{projectname}}" ]
+build.targets.wheel.packages = [ "src/{{packagename}}" ]
 
 [tool.uv]
 required-version = ">=0.13.6"
@@ -32,7 +32,7 @@ lint.select = [
   "F",  # Pyflakes
   "I",  # isort
   "UP", # pyupgrade
-  "W"  # pycodestyle warnings
+  "W",  # pycodestyle warnings
 ]
 
 [tool.ty]

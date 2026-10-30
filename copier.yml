@@ -2,6 +2,12 @@ projectname:
   type: str
   help: What is your project name
 
+packagename:
+  type: str
+  when: false
+  default: "{{ _copier_answers.projectname | lower | replace('-', '_') | replace(' ', '_') }}"
+  validator: "{% if not packagename.isidentifier() %}Project name '{{ projectname }}' normalises to '{{ packagename }}', which is not a valid Python identifier; start the project name with a letter.{% endif %}"
+
 project_description:
   type: str
 
@@ -43,16 +49,20 @@ _subdirectory: template
 _exclude:
   - "{% if not use_vscode %}.vscode{% endif %}"
   - "{% if not use_dvc %}hooks/check_dvc_pushed.py{% endif %}"
+  - "{% if not use_dvc %}.dvcignore{% endif %}"
 
-_skip_if_exists:
-  - pyproject.toml
-
+# Copy-time only: during an update, copier runs _tasks inside the project right
+# after force-overwriting it with the new render, and also inside its temporary
+# old/new copies. `git add -A` there poisons the index that copier's inline
+# conflict recovery (`git checkout -- <file>`) later reads, silently replacing
+# project edits with the raw render. See _main.py in copier 9.19.
 _tasks:
-  - uv run scripts/merge_pyproject.py
-  - git init
-  - uv sync
-  - uvx prek install
   - |-
+      {% if _copier_operation == "copy" %}
+      git init
+      # --inexact: plain `uv sync` uninstalls extras the project has installed.
+      uv sync --inexact
+      uvx prek install
       {% if use_dvc %}
       uv add "dvc[ssh]"
       test -d .dvc || uv run dvc init --no-scm
@@ -62,9 +72,15 @@ _tasks:
       uv run dvc remote modify --local ts01 user {{ dvc_ts01_user }}
       {% endif %}
       {% endif %}
-  - git add -A
-  - uvx prek run --all-files || true
-  - git add -A
+      git add -A
+      uvx prek run --all-files || true
+      git add -A
+      {% endif %}
+
+_message_after_update: |
+  Update applied. Sync your environment to pick up template tooling changes:
+    uv sync --inexact
+    uvx prek install
 
 _message_after_copy: |
   🎉 Project initialized successfully!
