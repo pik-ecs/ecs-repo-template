@@ -49,6 +49,7 @@ _subdirectory: template
 _exclude:
   - "{% if not use_vscode %}.vscode{% endif %}"
   - "{% if not use_dvc %}hooks/check_dvc_pushed.py{% endif %}"
+  - "{% if not use_dvc %}.dvcignore{% endif %}"
 
 # Copy-time only: during an update, copier runs _tasks inside the project right
 # after force-overwriting it with the new render, and also inside its temporary
