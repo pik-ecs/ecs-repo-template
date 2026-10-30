@@ -2,6 +2,12 @@ projectname:
   type: str
   help: What is your project name
 
+packagename:
+  type: str
+  when: false
+  default: "{{ _copier_answers.projectname | lower | replace('-', '_') | replace(' ', '_') }}"
+  validator: "{% if not packagename.isidentifier() %}Project name '{{ projectname }}' normalises to '{{ packagename }}', which is not a valid Python identifier; start the project name with a letter.{% endif %}"
+
 project_description:
   type: str
 
@@ -44,11 +50,7 @@ _exclude:
   - "{% if not use_vscode %}.vscode{% endif %}"
   - "{% if not use_dvc %}hooks/check_dvc_pushed.py{% endif %}"
 
-_skip_if_exists:
-  - pyproject.toml
-
 _tasks:
-  - uv run scripts/merge_pyproject.py
   - git init
   - uv sync
   - uvx prek install
