@@ -6,10 +6,12 @@ import sys
 
 
 def main() -> int:
+    """Return 1 if any DVC-tracked file is missing from its remote."""
     result = subprocess.run(
         [sys.executable, "-m", "dvc", "data", "status", "--not-in-remote", "--json"],
         capture_output=True,
         text=True,
+        check=False,
     )
     if result.returncode != 0:
         print("Could not check the DVC remote, so cannot verify data is pushed:")
