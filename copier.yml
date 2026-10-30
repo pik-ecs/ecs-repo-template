@@ -52,7 +52,10 @@ _exclude:
 
 _tasks:
   - git init
-  - uv sync
+  # --inexact: plain `uv sync` uninstalls extras (nacsos, ml, ...) the project has
+  # installed; then the project's ty hook can't resolve them and copier's final
+  # commit — which runs the project's own hooks — is rejected.
+  - uv sync --inexact
   - uvx prek install
   - |-
       {% if use_dvc %}
