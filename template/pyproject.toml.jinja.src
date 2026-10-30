@@ -21,6 +21,10 @@ dependencies = []
 version.source = "vcs"
 build.targets.wheel.packages = [ "src/{{projectname}}" ]
 
+[tool.uv]
+required-version = ">=0.13.6"
+exclude-newer = "P5D"
+
 [tool.ruff]
 lint.select = [
   "B",  # flake8-bugbear
