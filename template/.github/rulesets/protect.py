@@ -4,18 +4,20 @@
 # ///
 """Apply the group-standard "protect main" ruleset to this project's GitHub repository.
 
-Run from anywhere inside the project; the repository is detected from the ``origin`` remote:
+Run from anywhere inside the project; the repository is detected from the ``origin``
+remote:
 
     uv run .github/rulesets/protect.py [--reviews N]
 
-The script is declarative: the ruleset applied is exactly what the command says, so re-running
-without ``--reviews`` resets the required review count to the group standard (0). The JSON file
-next to this script is never modified.
+The script is declarative: the ruleset applied is exactly what the command says, so
+re-running without ``--reviews`` resets the required review count to the group standard
+(0). The JSON file next to this script is never modified.
 
-Settings are sent to GitHub's GraphQL API, the same interface the repository Settings UI uses.
-(The REST rulesets endpoints were tested first and found broken on this org: they silently drop
-the branch condition on create and return 404 on update. GraphQL also resolves renamed orgs
-natively, so remotes still using the old 'mcc-apsis' URL work as-is.)
+Settings are sent to GitHub's GraphQL API, the same interface the repository Settings UI
+uses. (The REST rulesets endpoints were tested first and found broken on this org: they
+silently drop the branch condition on create and return 404 on update. GraphQL also
+resolves renamed orgs natively, so remotes still using the old 'mcc-apsis' URL work
+as-is.)
 """
 
 import argparse
@@ -29,11 +31,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-NO_TOKEN_HELP = """\
+AUTH_HELP = """\
 No GitHub token found. Either:
   - set the GITHUB_TOKEN environment variable to a fine-grained personal access token
-    (create one at https://github.com/settings/personal-access-tokens/new for this repository,
-    with the repository permission "Administration: write"), or
+    (create one at https://github.com/settings/personal-access-tokens/new for this
+    repository, with the repository permission "Administration: write"), or
   - install the GitHub CLI (https://cli.github.com/) and run `gh auth login`."""
 
 FIND_REPO = """
@@ -63,11 +65,13 @@ GUARD_BLOCK = """{indent}- repo: https://github.com/pre-commit/pre-commit-hooks
 
 
 def fail(message: str) -> None:
+    """Print a fatal error message and exit."""
     print(message)
     if "upgrade" in message.lower():
         print(
-            "Branch protection (rulesets) is unavailable for private repositories on the "
-            "GitHub Free plan. Make the repository public, or ask about an org upgrade."
+            "Branch protection (rulesets) is unavailable for private repositories on "
+            "the GitHub Free plan. Make the repository public, or ask about an org "
+            "upgrade."
         )
     sys.exit(1)
 
@@ -84,7 +88,7 @@ def github_graphql(query: str, variables: dict, token: str) -> dict:
         },
     )
     try:
-        with urllib.request.urlopen(request) as response:
+        with urllib.request.urlopen(request) as response:  # noqa: S310 (constant URL)
             result = json.load(response)
     except urllib.error.HTTPError as error:
         try:
@@ -108,7 +112,7 @@ def find_github_token() -> str:
         )
         if gh.returncode == 0 and gh.stdout.strip():
             return gh.stdout.strip()
-    sys.exit(NO_TOKEN_HELP)
+    sys.exit(AUTH_HELP)
 
 
 def repo_from_origin_remote() -> tuple[str, str]:
@@ -121,8 +125,8 @@ def repo_from_origin_remote() -> tuple[str, str]:
     )
     if git.returncode != 0:
         fail(
-            "No 'origin' git remote found. Create and push the GitHub repository first, "
-            "e.g.:\n  gh repo create <name> --source . --push"
+            "No 'origin' git remote found. Create and push the GitHub repository "
+            "first, e.g.:\n  gh repo create <name> --source . --push"
         )
     match = re.search(r"github\.com[:/](.+?)(?:\.git)?$", git.stdout.strip())
     if not match or "/" not in match.group(1):
@@ -132,8 +136,11 @@ def repo_from_origin_remote() -> tuple[str, str]:
 
 
 def find_precommit_config() -> Path | None:
-    """Locate .pre-commit-config.yaml: the git root first (so the template repo itself, whose
-    config sits above the shipped script, works too), then the directory the script ships in."""
+    """Locate .pre-commit-config.yaml.
+
+    The git root is checked first (so the template repo itself, whose config sits above
+    the shipped script, works too), then the directory the script ships in.
+    """
     toplevel = subprocess.run(
         ["git", "rev-parse", "--show-toplevel"],
         capture_output=True,
@@ -150,14 +157,16 @@ def find_precommit_config() -> Path | None:
 def ensure_commit_guard() -> None:
     """Add the no-commit-to-branch guard to .pre-commit-config.yaml if it isn't there.
 
-    The file is appended to, never rewritten by a YAML round trip, so comments and formatting
-    in the rest of the file survive; the new entry copies the file's own indentation style.
+    The file is appended to, never rewritten by a YAML round trip, so comments and
+    formatting in the rest of the file survive; the new entry copies the file's own
+    indentation style.
     """
     config = find_precommit_config()
     manual = "add the block manually:\n" + GUARD_BLOCK.format(indent="  ")
     if config is None:
         print(
-            f"No .pre-commit-config.yaml found in the git root or the project directory; {manual}"
+            f"No .pre-commit-config.yaml found in the git root or the project "
+            f"directory; {manual}"
         )
         return
     content = config.read_text()
@@ -176,6 +185,7 @@ def ensure_commit_guard() -> None:
 
 
 def main() -> int:
+    """Apply the ruleset upstream and the commit guard locally."""
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
