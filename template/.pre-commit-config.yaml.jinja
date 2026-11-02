@@ -1,29 +1,27 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 2700fd5671c633760d912769c041bfcde2b9a01b # v0.15.22
-    hooks:
-      - id: ruff
-        args:
-          - --config=pyproject.toml
-      - id: ruff-format
-        args:
-          - --config=pyproject.toml
-
-  - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "b82a24a520c5d496cb7b23b4e9b63537c280f51b" #v2.27.0
-    hooks:
-      - id: pyproject-fmt
-        files: ^pyproject\.toml$
-
-  - repo: https://github.com/astral-sh/ty-pre-commit
-    # ty version.
-    rev: 18b2b8bb1b9b90d2d21283756e89b07fc9c747bf # v0.0.95
-    hooks:
-      - id: ty
-{% if use_dvc %}
-
   - repo: local
     hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
+      - id: ty
+        name: ty check
+        entry: uv run ty check --quiet
+        language: system
+        types_or: [python, pyi, jupyter]
+        pass_filenames: false
+        always_run: true
+        require_serial: true
+{% if use_dvc %}
       - id: dvc-pushed
         name: DVC data is pushed to remote
         entry: uv run python hooks/check_dvc_pushed.py
@@ -31,3 +29,9 @@ repos:
         files: '(\.dvc|dvc\.lock|dvc\.yaml)$'
         pass_filenames: false
 {% endif %}
+
+  - repo: https://github.com/tox-dev/pyproject-fmt
+    rev: "b82a24a520c5d496cb7b23b4e9b63537c280f51b" #v2.27.0
+    hooks:
+      - id: pyproject-fmt
+        files: ^pyproject\.toml$

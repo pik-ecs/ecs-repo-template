@@ -21,6 +21,7 @@ as-is.)
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
@@ -30,6 +31,7 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import NoReturn
 
 AUTH_HELP = """\
 No GitHub token found. Either:
@@ -64,7 +66,7 @@ GUARD_BLOCK = """{indent}- repo: https://github.com/pre-commit/pre-commit-hooks
 """
 
 
-def fail(message: str) -> None:
+def fail(message: str) -> NoReturn:
     """Print a fatal error message and exit."""
     print(message)
     if "upgrade" in message.lower():
@@ -91,10 +93,9 @@ def github_graphql(query: str, variables: dict, token: str) -> dict:
         with urllib.request.urlopen(request) as response:  # noqa: S310 (constant URL)
             result = json.load(response)
     except urllib.error.HTTPError as error:
-        try:
+        detail = error.reason
+        with contextlib.suppress(json.JSONDecodeError, OSError):
             detail = json.load(error).get("message", error.reason)
-        except (json.JSONDecodeError, OSError):
-            detail = error.reason
         fail(f"GitHub returned HTTP {error.code}: {detail}")
     if result.get("errors"):
         fail(f"GitHub rejected the request: {result['errors'][0]['message']}")

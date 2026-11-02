@@ -6,5 +6,7 @@
       "source.fixAll": "explicit"
     }
   },
-  "ty.lint.enable": true
+  "ruff.importStrategy": "fromEnvironment",
+  "ty.lint.enable": true,
+  "ty.importStrategy": "fromEnvironment"
 }

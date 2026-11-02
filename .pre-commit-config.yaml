@@ -5,7 +5,7 @@ repos:
   - repo: local
     hooks:
       - id: check-render
-        name: render check (template pyproject is pyproject-fmt canonical)
+        name: render check (fmt-canonical render, root/template pin parity)
         entry: uv run scripts/check_render.py
         language: system
         always_run: true
@@ -14,11 +14,20 @@ repos:
   # Lints all Python here with the [tool.ruff] config in the root pyproject.toml —
   # the same discovery generated projects use, so shipped scripts can never break a
   # project's first commit.
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 2700fd5671c633760d912769c041bfcde2b9a01b # v0.15.22
+  - repo: local
     hooks:
-      - id: ruff
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
       - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi, jupyter]
+        require_serial: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0

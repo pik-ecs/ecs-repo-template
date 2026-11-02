@@ -17,6 +17,12 @@ classifiers = [
 dynamic = [ "version" ]
 dependencies = []
 
+[dependency-groups]
+dev = [
+  "ruff>=0.15.22",
+  "ty>=0.0.94",
+]
+
 [tool.hatch]
 version.source = "vcs"
 build.targets.wheel.packages = [ "src/{{packagename}}" ]
@@ -26,6 +32,7 @@ required-version = ">=0.13.6"
 exclude-newer = "P5D"
 
 [tool.ruff]
+force-exclude = true
 lint.select = [
   "B",  # flake8-bugbear
   "E",  # pycodestyle errors
