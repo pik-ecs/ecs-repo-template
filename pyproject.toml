@@ -11,12 +11,15 @@ dev = [
     # Exact pin: must match the rev generated projects pin in
     # template/.pre-commit-config.yaml.jinja, or the canonical form differs per side.
     "pyproject-fmt==2.27.0",
+    "pyyaml",
+    "ruff==0.15.22",
 ]
 
 # This repo lints with everything (a superset of the group standard that generated
 # projects get from template/pyproject.toml.jinja.src), so nothing shipped can ever
 # trip a generated project's own hooks.
 [tool.ruff]
+force-exclude = true
 lint.select = ["ALL"]
 lint.ignore = [
   "COM812", # conflict with ruff-format
